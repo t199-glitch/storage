@@ -104,9 +104,9 @@
             box-shadow: 0 0 24px 6px rgba(255,255,200,0.2);
         }
 
-        /* 歷代書院：右移10% → left:14%，上移5% → top:32% */
+        /* 歷代書院：左移5% → left:9% */
         #hz-dynasty {
-            top: 32%; left: 14%;
+            top: 32%; left: 9%;
             width: 22%; height: 13%;
         }
 
@@ -122,17 +122,17 @@
             width: 24%; height: 13%;
         }
 
-        /* 三印封門：右移10% → left:45% */
+        /* 三印封門：左移5% → left:40% */
         #hz-gate {
-            top: 60%; left: 45%;
+            top: 60%; left: 40%;
             width: 22%; height: 13%;
         }
 
         /* ✓ 完成印章 */
         .done-stamp {
             position: absolute;
-            /* 放在熱區左上角，遠離名牌文字區 */
-            top: 4px; left: 4px;
+            /* 調整至適當位置，避免遮擋關卡名稱（放置於熱區右上角） */
+            top: 5px; right: 5px; left: auto;
             font-size: clamp(1.2rem, 2.5vw, 1.8rem);
             filter: drop-shadow(0 2px 6px rgba(0,180,0,0.9));
             animation: stamp-pop 0.4s ease-out;
