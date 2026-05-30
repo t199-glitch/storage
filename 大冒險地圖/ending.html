@@ -95,6 +95,7 @@
             inset: 0;
             background-color: #000;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             opacity: 0;
@@ -105,6 +106,7 @@
 
         #final-screen.show {
             opacity: 1;
+            pointer-events: auto;
         }
 
         .final-text {
@@ -112,8 +114,17 @@
             color: #f5c842; /* 金色 */
             text-shadow: 0 0 15px rgba(245, 200, 66, 0.6), 4px 4px 0px rgba(100, 70, 0, 0.8);
             letter-spacing: 10px;
+            margin-bottom: 40px;
         }
         
+        .restart-btn {
+            background: rgba(255,255,255,0.08); border: 2px solid rgba(255,255,255,0.3);
+            color: #fff; padding: 12px 40px; font-size: 1.2rem; font-family: inherit;
+            border-radius: 30px; cursor: pointer; letter-spacing: 4px; transition: all 0.3s;
+            pointer-events: auto;
+        }
+        .restart-btn:hover { background: rgba(255,255,255,0.2); border-color: #f5c842; color: #f5c842; }
+
         /* 全域漸黑遮罩 */
         #fade-overlay {
             position: fixed;
@@ -122,7 +133,7 @@
             opacity: 0;
             pointer-events: none;
             z-index: 50;
-            transition: opacity 2.5s ease-in-out;
+            transition: opacity 2s ease-in-out;
         }
 
         #fade-overlay.blackout {
@@ -138,12 +149,13 @@
     </div>
     <div class="click-hint" id="click-hint">▼ Click</div>
 
-    <!-- 漸黑遮罩 -->
-    <div id="fade-overlay"></div>
+    <!-- 漸黑遮罩 (預設為全黑，用於開場淡入) -->
+    <div id="fade-overlay" class="blackout"></div>
 
     <!-- 終幕 -->
     <div id="final-screen">
         <div class="final-text">冒險完成</div>
+        <button class="restart-btn" onclick="restartGame(event)">再次挑戰</button>
     </div>
 
     <script>
@@ -213,8 +225,28 @@
             }, 1000); // 鎖定點擊 1 秒
         }
 
-        // 初始化第一幕
+        // 初始化第一幕並執行開場淡入
         showScene(0);
+        setTimeout(() => {
+            document.getElementById('fade-overlay').classList.remove('blackout');
+        }, 100);
+
+        // 重新挑戰
+        function restartGame(e) {
+            e.stopPropagation(); // 阻止點擊事件往上傳遞，避免觸發翻頁
+            localStorage.removeItem('cert_dynasty');
+            localStorage.removeItem('cert_idiom');
+            localStorage.removeItem('cert_warrior');
+            localStorage.removeItem('adventure_start');
+            sessionStorage.removeItem('splash_seen');
+            
+            // 漸黑後跳回首頁
+            const overlay = document.getElementById('fade-overlay');
+            overlay.classList.add('blackout');
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 2000);
+        }
 
         // 點擊事件
         document.body.addEventListener('click', () => {

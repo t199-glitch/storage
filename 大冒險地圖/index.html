@@ -275,10 +275,19 @@
             .cert-badge { width: 64px; height: 64px; font-size: 1.4rem; }
             #hud { top: 1.5%; right: 1.5%; gap: 6px; }
             #cert-hud, #clear-btn { font-size: 0.72rem; padding: 4px 10px; }
+        /* 全域漸黑遮罩 (跳轉過場用) */
+        #global-fade {
+            position: fixed; inset: 0; background: #000;
+            opacity: 0; pointer-events: none; z-index: 9999;
+            transition: opacity 1.5s ease-in-out;
         }
+        #global-fade.active { opacity: 1; pointer-events: auto; }
     </style>
 </head>
 <body>
+
+    <!-- 全域漸黑遮罩 -->
+    <div id="global-fade"></div>
 
     <!-- ══ 開場封面 ══ -->
     <div id="splash">
@@ -545,7 +554,13 @@
             well.classList.add('filled');
             buildBackpack();
             if (Object.values(slotFilled).every(v => v)) {
-                setTimeout(() => { window.location.href = 'ending.html'; }, 600);
+                setTimeout(() => { 
+                    closeGateModal(); 
+                    document.getElementById('global-fade').classList.add('active');
+                    setTimeout(() => {
+                        window.location.href = 'ending.html';
+                    }, 1500); // 配合 CSS 的 1.5 秒淡出時間
+                }, 600);
             }
         } else {
             well.classList.add('error-flash');
