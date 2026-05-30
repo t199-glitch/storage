@@ -545,7 +545,7 @@
             well.classList.add('filled');
             buildBackpack();
             if (Object.values(slotFilled).every(v => v)) {
-                setTimeout(() => { closeGateModal(); showWinScreen(); }, 600);
+                setTimeout(() => { window.location.href = 'ending.html'; }, 600);
             }
         } else {
             well.classList.add('error-flash');

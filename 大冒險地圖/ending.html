@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>星塵歸於大地 - 傳說之晶片結局</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=DotGothic16&display=swap');
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body, html {
+            width: 100%; height: 100%;
+            background-color: #000;
+            overflow: hidden;
+            font-family: 'DotGothic16', 'Press Start 2P', 'Courier New', monospace;
+            color: #fff;
+            user-select: none;
+            cursor: pointer;
+        }
+
+        #image-layer {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1;
+        }
+
+        .scene-img {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+        }
+
+        .scene-img.active {
+            opacity: 1;
+        }
+
+        #text-layer {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            padding-bottom: 10%;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .subtitle {
+            width: 80%;
+            max-width: 800px;
+            text-align: center;
+            font-size: 1.5rem;
+            line-height: 1.8;
+            letter-spacing: 3px;
+            text-shadow: 2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 0 4px 10px rgba(0,0,0,0.8);
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 1s ease-out, transform 1s ease-out;
+        }
+
+        .subtitle.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 點擊提示 */
+        .click-hint {
+            position: absolute;
+            bottom: 5%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+            animation: blink 1.5s infinite;
+            z-index: 3;
+            text-shadow: 1px 1px 0 #000;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+
+        /* 終幕：冒險完成 */
+        #final-screen {
+            position: absolute;
+            inset: 0;
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 3s ease-in-out;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        #final-screen.show {
+            opacity: 1;
+        }
+
+        .final-text {
+            font-size: 3rem;
+            color: #f5c842; /* 金色 */
+            text-shadow: 0 0 15px rgba(245, 200, 66, 0.6), 4px 4px 0px rgba(100, 70, 0, 0.8);
+            letter-spacing: 10px;
+        }
+        
+        /* 全域漸黑遮罩 */
+        #fade-overlay {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 50;
+            transition: opacity 2.5s ease-in-out;
+        }
+
+        #fade-overlay.blackout {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="image-layer"></div>
+    <div id="text-layer">
+        <div class="subtitle" id="subtitle-box"></div>
+    </div>
+    <div class="click-hint" id="click-hint">▼ Click</div>
+
+    <!-- 漸黑遮罩 -->
+    <div id="fade-overlay"></div>
+
+    <!-- 終幕 -->
+    <div id="final-screen">
+        <div class="final-text">冒險完成</div>
+    </div>
+
+    <script>
+        const sequence = [
+            { src: '../塵埃落定1.png', text: '當最後一塊魔晶沒入核心，肆虐百年的風暴...終於停息。' },
+            { src: '../塵埃落定2.png', text: '當最後一塊魔晶沒入核心，肆虐百年的風暴...終於停息。' },
+            { src: '../塵埃落定3.png', text: '當最後一塊魔晶沒入核心，肆虐百年的風暴...終於停息。' },
+            { src: '../英雄背影.png', text: '預言中的救世主沒有留下名字。這柄劍，完成了它的宿命。' },
+            { src: '../晶片餘暉.png', text: '力量與詛咒一同消逝。往後的路，屬於凡人自己。' },
+            { src: '../永恆旅途.png', text: '冒險並未終結，它只是換了個名字。' }
+        ];
+
+        let currentIndex = 0;
+        let isTransitioning = false;
+        
+        const imageLayer = document.getElementById('image-layer');
+        const subtitleBox = document.getElementById('subtitle-box');
+        let currentImgEl = null;
+
+        // 預載圖片避免點擊時閃爍
+        sequence.forEach(item => {
+            const img = new Image();
+            img.src = item.src;
+        });
+
+        function showScene(index) {
+            isTransitioning = true;
+            const data = sequence[index];
+
+            // 1. 處理圖片的 Crossfade
+            const newImg = document.createElement('img');
+            newImg.src = data.src;
+            newImg.className = 'scene-img';
+            imageLayer.appendChild(newImg);
+
+            // 強制瀏覽器重繪，讓 opacity 轉場生效
+            void newImg.offsetWidth; 
+            newImg.classList.add('active');
+
+            const oldImg = currentImgEl;
+            if (oldImg) {
+                oldImg.classList.remove('active');
+                setTimeout(() => {
+                    oldImg.remove();
+                }, 1500); // 等待淡出動畫完成後移除
+            }
+            currentImgEl = newImg;
+
+            // 2. 處理字幕
+            if (subtitleBox.innerText !== data.text) {
+                subtitleBox.classList.remove('active');
+                
+                // 如果是第一張，不需要等舊字淡出
+                if (index === 0) {
+                    subtitleBox.innerText = data.text;
+                    setTimeout(() => subtitleBox.classList.add('active'), 500);
+                } else {
+                    setTimeout(() => {
+                        subtitleBox.innerText = data.text;
+                        subtitleBox.classList.add('active');
+                    }, 800); // 等待舊字淡出後更新
+                }
+            }
+
+            setTimeout(() => {
+                isTransitioning = false;
+            }, 1000); // 鎖定點擊 1 秒
+        }
+
+        // 初始化第一幕
+        showScene(0);
+
+        // 點擊事件
+        document.body.addEventListener('click', () => {
+            if (isTransitioning) return;
+            
+            currentIndex++;
+            
+            if (currentIndex < sequence.length) {
+                showScene(currentIndex);
+            } else if (currentIndex === sequence.length) {
+                // 最後一張，觸發 Fade to black
+                isTransitioning = true;
+                document.getElementById('click-hint').style.display = 'none';
+                subtitleBox.classList.remove('active');
+                
+                const overlay = document.getElementById('fade-overlay');
+                overlay.classList.add('blackout');
+
+                // 漸黑完成後，顯示終幕文字
+                setTimeout(() => {
+                    document.getElementById('final-screen').classList.add('show');
+                }, 3000); // 等待 2.5 秒全黑，再過 0.5 秒顯示文字
+            }
+        });
+    </script>
+</body>
+</html>
